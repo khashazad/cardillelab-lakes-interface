@@ -3,217 +3,137 @@ import os
 import re
 import time
 
-import Constants.Constants as ct
+from Constants.Constants import DatasetFlag as Dataset
+import Constants.Constants as constants
 
 # from multiprocessing import Process
 from Mongo.MongoAdapter import MongoDriver
+from Parsing.Landsat8ParsingStrategy import Landsat8ParsingStrategy
 from Services.LoggerService import LoggerService as Logger
 
 
-def insertImageProperties(filepath):
-    imgids = set()
-    uniquerows = []
+def process_data(dataset, filePath, asset_id, buffer):
+    records = []
 
-    with open(filepath, "r") as csvfile:
-        reader = csv.reader(csvfile)
-        # skipping header row
-        next(reader)
+    record_collection_name = generate_collection_name(dataset, asset_id, buffer)
+    image_collection_name = generate_image_collection_name(dataset)
 
-        for row in reader:
-            row.pop()
+    parsing_strategy = get_record_parser(dataset)
 
-            cloudcover = row.pop(14)
-            cloudcoverland = row.pop(14)
-
-            imgid = row[18]
-            imageproperties = [
-                row.pop(15),
-                row.pop(15),
-                row.pop(15),
-                imgid,
-                row.pop(16),
-                row.pop(16),
-                row.pop(16),
-                cloudcover,
-                cloudcoverland,
-            ]
-
-            if imgid in imgids:
-                continue
-            imgids.add(imgid)
-            uniquerows.append(
-                {
-                    "img_id": imageproperties[3],
-                    "id_doy": imageproperties[0],
-                    "img_date": imageproperties[1],
-                    "img_day": imageproperties[2],
-                    "img_month": imageproperties[4],
-                    "img_sat": imageproperties[5],
-                    "img_year": imageproperties[6],
-                    "cloud_cover": imageproperties[7],
-                    "cloud_cover_land": imageproperties[8],
-                }
-            )
-
-    try:
-        MongoDriver.insertDocuments("l8_image_properties", uniquerows)
-    except Exception as error:
-        Logger.log_error(error)
-
-
-def insertDataToCollection(filePath, fishID, buffer):
-    Logger.log_info("Started processing fishID{} - Buffer {}m ".format(fishID, buffer))
-
-    rows = []
-
-    # print(filePath)
     with open(filePath, "r") as file:
-        startTime = time.time()
         Logger.log_info("Procesing file: " + filePath)
+
         reader = csv.reader(file)
         next(reader)  # skip header
 
-        for row in reader:
-            row.pop()
-            cloudCover = row.pop(14)
-            cloudCoverLand = row.pop(14)
-            imageProperties = [
-                row.pop(15),
-                row.pop(15),
-                row.pop(15),
-                row[15],
-                row.pop(16),
-                row.pop(16),
-                row.pop(16),
-                cloudCover,
-                cloudCoverLand,
-            ]
-
-            qaPixel = float(row.pop(3))
-            # print(qaPixel)
-            row.insert(2, str(int(float(row.pop(2)))))
-
-            if qaPixel.is_integer():
-                if str(int(qaPixel)) in ct.QA_PIXEL_VALUES:
-                    row.insert(3, str(qaPixel))
-                else:
-                    row.insert(3, "0")
-            else:
-                row.insert(3, "0")
-
-            band1 = "sr_band1_{}_m".format(buffer)
-            band2 = "sr_band2_{}_m".format(buffer)
-            band3 = "sr_band3_{}_m".format(buffer)
-            band4 = "sr_band4_{}_m".format(buffer)
-            band5 = "sr_band5_{}_m".format(buffer)
-            band6 = "sr_band6_{}_m".format(buffer)
-            band7 = "sr_band7_{}_m".format(buffer)
-            qaAerosol = "sr_qa_aerosol_{}_m".format(buffer)
-            stBand10 = "st_band10_{}_m".format(buffer)
-
-            rows.append(
-                {
-                    "system_index": row[0],
-                    "buffer_size": row[1],
-                    "hydrolak_id": row[2],
-                    "qa_pixel": float(row[3]),
-                    "qa_radsat": float(row[4]),
-                    band1: float(row[5]),
-                    band2: float(row[6]),
-                    band3: float(row[7]),
-                    band4: float(row[8]),
-                    band5: float(row[9]),
-                    band6: float(row[10]),
-                    band7: float(row[11]),
-                    qaAerosol: float(row[12]),
-                    stBand10: float(row[13]),
-                    "fish_id": int(float(fishID)),
-                    "img_id": row[15],
-                }
+        for observation in reader:
+            image_record = parsing_strategy.extract_image_record(observation)
+            record = parsing_strategy.extract_record(observation)
+            record["img_id"] = process_image_information(
+                image_collection_name, image_record
             )
-
-        collectionName = "l8_fish_id{}_{}m".format(fishID, buffer)
-
+            records.append(record)
         try:
-            MongoDriver.dropCollectionIfExists(collectionName)
-            MongoDriver.insertDocuments(collectionName, rows)
-            totalTime = time.time() - startTime
-            Logger.log_info(
-                "Data inserted in :" + time.strftime("%H:%M:%S", time.gmtime(totalTime))
-            )
+            MongoDriver.insert_many(record_collection_name, records)
         except Exception as error:
             Logger.log_error(error)
 
 
-def processAssets(dataset):
-    with open(ct.PATH_ASSETS_INSERT_DB) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=",")
+def process_image_information(collection, image_record):
+    result = MongoDriver.find_one(collection, "img_id", image_record["img_id"])
+    if result is None:
+        return MongoDriver.insert_one(collection, image_record)
+    else:
+        return result["_id"]
 
+
+def get_record_parser(dataset):
+    if dataset == Dataset.LANDSAT8:
+        return Landsat8ParsingStrategy()
+    else:
+        return Landsat8ParsingStrategy()
+
+
+def generate_collection_name(dataset: Dataset, asset_id: str, buffer: str):
+    collection_prefix = "l8" if dataset == Dataset.LANDSAT8 else "s2"
+
+    return "{}_{}_{}m".format(collection_prefix, asset_id, buffer)
+
+
+def generate_image_collection_name(dataset: Dataset):
+    collection_prefix = "l8" if dataset == Dataset.LANDSAT8 else "s2"
+
+    return "{}_image_properties".format(collection_prefix)
+
+
+def process_assets(dataset: Dataset):
+    with open(constants.PATH_ASSETS_INSERT_DB) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=",")
         for asset in csv_reader:
             if len(asset) != 0:
-                assetID = asset[0]
+                asset_id = asset[0]
 
-                processAsset(assetID)
+                process_asset(dataset, asset_id)
 
 
-# Parses the data for a single asset (fishId) and inserts it to the database
-def processAsset(fishID):
-    print("processing assest{}".format(fishID))
+# Parses the data for a single asset and inserts it to the database
+def process_asset(dataset, asset_id):
+    Logger.log_info("Processing assest {}".format(asset_id))
 
-    folderPath = ct.PATH_DB_Assets_FOLDER + "/Landsat8 - Fishnet 2/fish_ID{0}".format(
-        fishID
+    folder_path = (
+        constants.PATH_DB_Assets_FOLDER
+        + "/Landsat8 - Fishnet 2/fish_ID{0}".format(asset_id)
     )
-    allFiles = os.listdir(folderPath)
+    all_files = os.listdir(folder_path)
 
-    insertImageProperties(os.path.join(folderPath, allFiles[0]))
-
-    for b in ct.BUFFERS:
-        for f in allFiles:
+    for buffer in constants.BUFFERS:
+        for f in all_files:
             s = "[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m\.csv".format(
-                b
+                buffer
             )
             regex = re.compile(s)
             if regex.match(f):
-                splitFileName = f.split(".")
-                fishID = splitFileName[2].split("D")[1]
-                filePath = os.path.join(folderPath, f)
+                split_file_name = f.split(".")
+                asset_id = split_file_name[2].split("D")[1]
+                file_path = os.path.join(folder_path, f)
 
-                insertDataToCollection(filePath, fishID, b)
+                process_data(dataset, file_path, asset_id, buffer)
 
 
-def generateLookupTable():
-    # list of fishnet lookup objects that will be inserted to the database collection
-    fishetNetLookups = []
+def generate_lookup_collection():
+    # list of lookup objects that will be inserted to the database collection
+    lookup_records = []
 
     try:
-        with open(ct.PATH_ASSETS_ALL) as csv_file:
+        with open(constants.PATH_ASSETS_ALL) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=",")
 
             for asset in csv_reader:
                 if len(asset) != 0:
-                    assetID = asset[0]
+                    asset_id = asset[0]
 
-                    pathToAssetFile = (
-                        ct.PATH_ASSETS_FISHNET2 + r"/fish_ID{}.csv".format(assetID)
+                    asset_file_path = (
+                        constants.PATH_ASSETS_FISHNET2
+                        + r"/fish_ID{}.csv".format(asset_id)
                     )
 
-                    with open(pathToAssetFile, "r") as file:
+                    with open(asset_file_path, "r") as file:
                         reader = csv.reader(file)
                         next(reader)  # skip header
 
                         for row in reader:
-                            fishetNetLookups.append(
+                            lookup_records.append(
                                 {
                                     "hylak_id": int(float(row[0])),
-                                    "fish_id": int(float(assetID)),
+                                    "fish_id": int(float(asset_id)),
                                     "longitude": float(row[1]),
                                     "latitude": float(row[2]),
                                 }
                             )
 
-        MongoDriver.insertDocuments("fishnet-lookup", fishetNetLookups)
+        MongoDriver.insert_many("fishnet_lookup", lookup_records)
 
-        Logger.log_info("Inserted all fishnet lookup data")
+        Logger.log_info("Inserted all lookup data")
 
     except Exception as error:
         Logger.log_error(error)

@@ -3,8 +3,7 @@ import os
 
 # constant
 PATH_SCRIPT_DIRECTORY = os.path.dirname(os.path.realpath(__file__)) + "/.."
-PATH_ASSETS_TO_PROCESS = PATH_SCRIPT_DIRECTORY + r"/Assets/toProcess.csv"
-PATH_ASSETS_INSERT_DB = PATH_SCRIPT_DIRECTORY + r"/Assets/insertToDB.csv"
+PATH_ASSETS_INSERT_DB = PATH_SCRIPT_DIRECTORY + r"/Assets/assetsToInsert.csv"
 PATH_ASSETS_ALL = PATH_SCRIPT_DIRECTORY + r"/Assets/allAssets.csv"
 PATH_ASSETS_FISHNET2 = PATH_SCRIPT_DIRECTORY + r"/Assets/fishnet2"
 PATH_DOWNLOAD_FOLDER = PATH_SCRIPT_DIRECTORY + r"/Downloads"

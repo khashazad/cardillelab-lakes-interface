@@ -40,6 +40,17 @@ QA_PIXEL_VALUES = [
 ]
 
 
-class DatasetFlag(enum.Enum):
+class Datasets(enum.Enum):
     LANDSAT8 = enum.auto()
     SENTINEL1 = enum.auto()
+
+
+class Collections(enum.Enum):
+    Collection1 = enum.auto()
+    Collection2 = enum.auto()
+    Collection3 = enum.auto()
+
+
+class Operations(enum.Enum):
+    DOWNLOAD = enum.auto()
+    DELETE = enum.auto()

@@ -9,7 +9,9 @@ PATH_ASSETS_FISHNET2 = PATH_SCRIPT_DIRECTORY + r"/Assets/fishnet2"
 PATH_DOWNLOAD_FOLDER = PATH_SCRIPT_DIRECTORY + r"/Downloads"
 
 # PATH_DBTEST_FOLDER = PATH_SCRIPT_DIRECTORY + r"/testDB"
-PATH_DB_Assets_FOLDER = r"/Volumes/Lakes Data Second Copy"
+# PATH_DB_Assets_FOLDER = r"/Volumes/Lakes Data Second Copy"
+PATH_DB_Assets_FOLDER = r"F:/"
+
 
 BUFFERS = [1, 10, 15, 20, 30, 40, 60, 90, 100, 125, 250]
 

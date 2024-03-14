@@ -1,7 +1,6 @@
 import csv
 import os
 import re
-import time
 
 from Constants.Constants import DatasetFlag as Dataset
 import Constants.Constants as constants
@@ -11,9 +10,11 @@ from Mongo.MongoAdapter import MongoDriver
 from Parsing.Landsat8ParsingStrategy import Landsat8ParsingStrategy
 from Services.LoggerService import LoggerService as Logger
 
+from multiprocessing import Process
 
 def process_data(dataset, filePath, asset_id, buffer):
     records = []
+    image_records = []
 
     record_collection_name = generate_collection_name(dataset, asset_id, buffer)
     image_collection_name = generate_image_collection_name(dataset)
@@ -29,22 +30,14 @@ def process_data(dataset, filePath, asset_id, buffer):
         for observation in reader:
             image_record = parsing_strategy.extract_image_record(observation)
             record = parsing_strategy.extract_record(observation)
-            record["img_id"] = process_image_information(
-                image_collection_name, image_record
-            )
+            record["image"] = image_record;
             records.append(record)
         try:
-            MongoDriver.insert_many(record_collection_name, records)
+            MongoDriver.insert_many_reset_collection(record_collection_name, records)
         except Exception as error:
             Logger.log_error(error)
 
 
-def process_image_information(collection, image_record):
-    result = MongoDriver.find_one(collection, "img_id", image_record["img_id"])
-    if result is None:
-        return MongoDriver.insert_one(collection, image_record)
-    else:
-        return result["_id"]
 
 
 def get_record_parser(dataset):
@@ -57,7 +50,7 @@ def get_record_parser(dataset):
 def generate_collection_name(dataset: Dataset, asset_id: str, buffer: str):
     collection_prefix = "l8" if dataset == Dataset.LANDSAT8 else "s2"
 
-    return "{}_{}_{}m".format(collection_prefix, asset_id, buffer)
+    return "c2_{}_{}_{}m".format(collection_prefix, asset_id, buffer)
 
 
 def generate_image_collection_name(dataset: Dataset):
@@ -86,9 +79,11 @@ def process_asset(dataset, asset_id):
     )
     all_files = os.listdir(folder_path)
 
+    processes = []
+
     for buffer in constants.BUFFERS:
         for f in all_files:
-            s = "[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m\.csv".format(
+            s = r"[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m.csv".format(
                 buffer
             )
             regex = re.compile(s)
@@ -97,7 +92,15 @@ def process_asset(dataset, asset_id):
                 asset_id = split_file_name[2].split("D")[1]
                 file_path = os.path.join(folder_path, f)
 
-                process_data(dataset, file_path, asset_id, buffer)
+                process = Process(target=process_data, args=(dataset, file_path, asset_id, buffer))
+
+                processes.append(process)
+                process.start()
+
+                # process_data(dataset, file_path, asset_id, buffer)
+            
+    for p in processes:
+        p.join()
 
 
 def generate_lookup_collection():
@@ -131,7 +134,7 @@ def generate_lookup_collection():
                                 }
                             )
 
-        MongoDriver.insert_many("fishnet_lookup", lookup_records)
+        MongoDriver.insert_many_reset_collection("fishnet_lookup", lookup_records)
 
         Logger.log_info("Inserted all lookup data")
 

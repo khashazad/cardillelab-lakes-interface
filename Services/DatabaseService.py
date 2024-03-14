@@ -3,7 +3,7 @@ import os
 import re
 import time
 
-from Constants.Constants import DatasetFlag as Dataset
+from Constants.Constants import Datasets as Dataset
 import Constants.Constants as constants
 
 # from multiprocessing import Process

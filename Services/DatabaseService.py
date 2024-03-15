@@ -2,7 +2,7 @@ import csv
 import os
 import re
 
-from Constants.Constants import Datasets as Dataset
+from Constants.Constants import Datasets, Collections, PATH_AS
 import Constants.Constants as constants
 
 # from multiprocessing import Process
@@ -14,10 +14,8 @@ from multiprocessing import Process
 
 def process_data(dataset, filePath, asset_id, buffer):
     records = []
-    image_records = []
 
     record_collection_name = generate_collection_name(dataset, asset_id, buffer)
-    image_collection_name = generate_image_collection_name(dataset)
 
     parsing_strategy = get_record_parser(dataset)
 
@@ -37,29 +35,26 @@ def process_data(dataset, filePath, asset_id, buffer):
         except Exception as error:
             Logger.log_error(error)
 
-
-
-
 def get_record_parser(dataset):
-    if dataset == Dataset.LANDSAT8:
+    if dataset == Datasets.LANDSAT8:
         return Landsat8ParsingStrategy()
     else:
         return Landsat8ParsingStrategy()
 
 
-def generate_collection_name(dataset: Dataset, asset_id: str, buffer: str):
-    collection_prefix = "l8" if dataset == Dataset.LANDSAT8 else "s2"
+def generate_collection_name(dataset: Datasets, asset_id: str, buffer: str):
+    collection_prefix = "l8" if dataset == Datasets.LANDSAT8 else "s2"
 
     return "c2_{}_{}_{}m".format(collection_prefix, asset_id, buffer)
 
 
-def generate_image_collection_name(dataset: Dataset):
-    collection_prefix = "l8" if dataset == Dataset.LANDSAT8 else "s2"
+def generate_image_collection_name(dataset: Datasets):
+    collection_prefix = "l8" if dataset == Datasets.LANDSAT8 else "s2"
 
     return "{}_image_properties".format(collection_prefix)
 
 
-def process_assets(dataset: Dataset):
+def process_assets(dataset: Datasets):
     with open(constants.PATH_ASSETS_INSERT_DB) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=",")
         for asset in csv_reader:
@@ -68,15 +63,32 @@ def process_assets(dataset: Dataset):
 
                 process_asset(dataset, asset_id)
 
+def getCollectionId(collection: Collections):
+    if collection == Collections.Collection1:
+        return "1"
+    if collection == Collections.Collection2:
+        return "2"
+    if collection == Collections.Collection2:
+        return "3"
+    return ""
+
+def getDatasetId(dataset: Datasets):
+    if dataset == Datasets.LANDSAT8:
+        return "Landsat8"
+    if dataset == Datasets.SENTINEL2:
+        return "Sentinel2"
+    return ""
+
+def getAssetsFolderName(collection: Collections, dataset: Datasets):
+    return "{} - Fishnet {}".format(getDatasetId, getCollectionId(collection))
+
 
 # Parses the data for a single asset and inserts it to the database
 def process_asset(dataset, asset_id):
     Logger.log_info("Processing assest {}".format(asset_id))
 
-    folder_path = (
-        constants.PATH_DB_Assets_FOLDER
-        + "/Landsat8 - Fishnet 2/fish_ID{0}".format(asset_id)
-    )
+    folder_path = "{}/{}/fish_ID{}".format(constants.PATH_DB_Assets_FOLDER, getAssetsFolderName(Collections.Collection2, dataset), asset_id)
+
     all_files = os.listdir(folder_path)
 
     processes = []

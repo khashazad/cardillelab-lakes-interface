@@ -42,9 +42,10 @@ export default function Home() {
           <h2 className="font-bold text-2xl">Database Model</h2>
           <p>
             In the database model, lakes are spatially organized into categories
-            known as <b>"assets"</b>.These assets are further aggregated into
-            larger units referred to as <b>"collections"</b>. The following
-            naming convention is used to name the database collections:
+            known as <b>{'"assets"'}</b>.These assets are further aggregated
+            into larger units referred to as <b>{'"collections"'}</b>. The
+            following naming convention is used to name the database
+            collections:
           </p>
 
           <div className="font-bold text-2xl flex justify-center">

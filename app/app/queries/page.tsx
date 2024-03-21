@@ -45,23 +45,23 @@ export default function ConnectionPage() {
             <ul className="ml-6 mt-2">
               <li>
                 {" "}
-                <strong>"$lt"</strong>: less than{" "}
+                <strong>{"$lt"}</strong>: less than{" "}
               </li>
               <li>
                 {" "}
-                <strong>"$lte"</strong>: less than or equal{" "}
+                <strong>{"$lte"}</strong>: less than or equal{" "}
               </li>
               <li>
                 {" "}
-                <strong>"$eq"</strong>: equal{" "}
+                <strong>{"$eq"}</strong>: equal{" "}
               </li>
               <li>
                 {" "}
-                <strong>"$ne"</strong>: not equal{" "}
+                <strong>{"$ne"}</strong>: not equal{" "}
               </li>
               <li>
                 {" "}
-                <strong>"$gte"</strong>: greater than or equal{" "}
+                <strong>{"$gte"}</strong>: greater than or equal{" "}
               </li>
             </ul>
           </div>

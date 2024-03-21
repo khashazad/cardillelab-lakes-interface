@@ -6,10 +6,12 @@ from Constants.Constants import (
     Operations,
     Datasets,
 )
+from Services.LoggerService import LoggerService as Logger
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
     os.path.dirname(os.path.realpath(__file__)) + r"/key.json"
 )
+
 
 BUCKET = "landsat8-fishnet1-lake-harvest"
 BUFFERS = [60]
@@ -128,8 +130,14 @@ def processAsset(asset_id, asset_size):
         # building the string representing the file in CS
         file_name = buildGCSFileName(asset_id, asset_size, buffer)
 
-        if Operation == Operations.DOWNLOAD:
-            downloadFiles(file_name, asset_id, asset_size, buffer)
+        try:
+            if Operation == Operations.DOWNLOAD:
+                downloadFiles(file_name, asset_id, asset_size, buffer)
+        except:
+            Logger.log_error(asset_id)
+        else:
+            Logger.log_info("Processed file {}".format(file_name))
+
         if Operation == Operations.DELETE:
             deleteFiles(file_name)
 

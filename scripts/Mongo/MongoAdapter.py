@@ -81,6 +81,13 @@ class MongoDriver:
                 )
 
     @staticmethod
+    def find_all(collection_name, filter_key, filter_value):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            return db[collection_name].find({filter_key: filter_value})
+
+    @staticmethod
     def insert_many_reset_collection(collection_name, documents):
         db = MongoDriver.get_db_instance()
 

@@ -16,10 +16,10 @@ DATASET = Datasets.LANDSAT8
 BUFFERS = [60]
 
 # Paths
-PATH_DB_Assets_FOLDER = os.path.abspath("G:/")
+PATH_DB_Assets_FOLDER = os.path.abspath("/Volumes/Files/")
 
-PATH_ASSETS_INSERT_DB = (
-    os.path.join(os.path.realpath(__file__),r"../Assets/assetsToInsert.csv")
+PATH_ASSETS_INSERT_DB = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), r"Assets/assetsToInsert.csv"
 )
 
 
@@ -29,8 +29,12 @@ def get_record_parser():
     else:
         return Landsat8ParsingStrategy()
 
+
 def generate_collection_name(asset_id: str, buffer: str):
-    return "c{}_{}_{}_{}m".format(get_collection_id(), get_dataset_id(), asset_id, buffer)
+    return "c{}_{}_{}_{}m".format(
+        get_collection_id(), get_dataset_id(), asset_id, buffer
+    )
+
 
 def get_collection_id():
     if COLLECTION == Collections.Collection1:
@@ -41,29 +45,37 @@ def get_collection_id():
         return "3"
     return ""
 
+
 def get_dataset_id():
     if DATASET == Datasets.LANDSAT8:
         return "l8"
-    if DATASET == Datasets.SENTINEL2:
+    if DATASET == Datasets.SENTINEL1:
         return "s2"
     return ""
+
 
 def get_assets_folder_dataset_prefix():
     if DATASET == Datasets.LANDSAT8:
         return "Landsat8"
-    if DATASET == Datasets.SENTINEL2:
-        return "Sentinel2"
+    if DATASET == Datasets.SENTINEL1:
+        return "Sentinel1"
     return ""
 
+
 def get_assets_folder_path():
-    return "{} - Fishnet {}".format(get_assets_folder_dataset_prefix(), get_collection_id())
+    return "{} - Fishnet {}".format(
+        get_assets_folder_dataset_prefix(), get_collection_id()
+    )
 
 
 def get_asset_file_regex(buffer):
-    if(COLLECTION == Collections.Collection1 or COLLECTION == Collections.Collection3):
+    if COLLECTION == Collections.Collection2:
+        return r"[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m.csv".format(
+            buffer
+        )
+    else:
         return r"[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m.csv".format(buffer)
-    if(COLLECTION == Collections.Collection2):
-        return r"[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m.csv".format(buffer)
+
 
 def process_data(filePath, asset_id, buffer):
     records = []
@@ -78,14 +90,13 @@ def process_data(filePath, asset_id, buffer):
         reader = csv.reader(file)
         next(reader)  # skip header
 
-
         for observation in reader:
-            if(len(observation) != 0):
+            if len(observation) != 0:
                 image_record = parsing_strategy.extract_image_record(observation)
                 record = parsing_strategy.extract_record(observation)
-                record["image"] = image_record;
+                record["image"] = image_record
                 records.append(record)
-            
+
         try:
             MongoDriver.insert_many_reset_collection(record_collection_name, records)
         except Exception as error:
@@ -95,16 +106,19 @@ def process_data(filePath, asset_id, buffer):
 def get_asset_id_from_file_name(file_name):
     split_file_name = file_name.split(".")
 
-    if(COLLECTION == Collections.Collection1 or COLLECTION == Collections.Collection3):
+    if COLLECTION == Collections.Collection1 or COLLECTION == Collections.Collection3:
         return split_file_name[1].split("D")[1]
     else:
         return split_file_name[2].split("D")[1]
+
 
 # Parses the data for a single asset and inserts it to the database
 def process_asset(asset_id):
     Logger.log_info("Processing assest {}".format(asset_id))
 
-    folder_path = os.path.join(PATH_DB_Assets_FOLDER, get_assets_folder_path(), "fish_ID{}".format(asset_id) )
+    folder_path = os.path.join(
+        PATH_DB_Assets_FOLDER, get_assets_folder_path(), "fish_ID{}".format(asset_id)
+    )
 
     all_files = os.listdir(folder_path)
 
@@ -119,15 +133,18 @@ def process_asset(asset_id):
                 asset_id = get_asset_id_from_file_name(file)
                 file_path = os.path.join(folder_path, file)
 
-                process = Process(target=process_data, args=(file_path, asset_id, buffer))
+                process = Process(
+                    target=process_data, args=(file_path, asset_id, buffer)
+                )
 
                 processes.append(process)
                 process.start()
 
                 # process_data(dataset, file_path, asset_id, buffer)
-            
+
     for p in processes:
         p.join()
+
 
 def process_assets():
     with open(PATH_ASSETS_INSERT_DB) as csv_file:
@@ -137,7 +154,6 @@ def process_assets():
                 asset_id = asset[0]
 
                 process_asset(asset_id)
-
 
 
 if __name__ == "__main__":

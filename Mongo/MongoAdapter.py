@@ -1,6 +1,7 @@
 from Services.LoggerService import LoggerService as Logger
 from pymongo import MongoClient
 
+
 class MongoDriver:
     client = None
     tunnel = None
@@ -8,14 +9,21 @@ class MongoDriver:
     db = None
 
     @staticmethod
+    def get_db_instance():
+        if MongoDriver.client is None:
+            MongoDriver.initialize()
+
+        return MongoDriver.db
+
+    @staticmethod
     def initialize():
         if MongoDriver.client is None:
             # Connecting to MongoDB
             MongoDriver.client = MongoClient(
                 host="206.12.90.121",
-                port= 27017,
+                port=27017,
                 username="root",
-                password="ORJ0Gcqo9cu0iG8Py6B2IYdZFBCyl7tQx4Iazr/VC6sYhrZIuXbvSkbM4J6Th0QO"
+                password="ORJ0Gcqo9cu0iG8Py6B2IYdZFBCyl7tQx4Iazr/VC6sYhrZIuXbvSkbM4J6Th0QO",
             )
 
             MongoDriver.db = MongoDriver.client["Lakes"]
@@ -27,18 +35,32 @@ class MongoDriver:
 
     @staticmethod
     def drop_collection_if_exists(collectionName):
-        if MongoDriver.db is not None:
-            if collectionName in MongoDriver.db.list_collection_names():
-                MongoDriver.db[collectionName].drop()
+        db = MongoDriver.get_db_instance()
+        if db is not None:
+            if collectionName in db.list_collection_names():
+                db[collectionName].drop()
+
+    @staticmethod
+    def get_collection_names():
+        db = MongoDriver.get_db_instance()
+        if db is not None:
+            return db.list_collection_names()
+        else:
+            return []
+
+    @staticmethod
+    def get_document_count(collection_name):
+        db = MongoDriver.get_db_instance()
+        if db is not None:
+            collection = db[collection_name]
+            return collection.count_documents({})
 
     @staticmethod
     def find_one(collection_name, field, value):
-        if MongoDriver.client is None:
-            MongoDriver.initialize()
+        db = MongoDriver.get_db_instance()
 
-
-        if MongoDriver.db is not None:
-            collection = MongoDriver.db[collection_name]
+        if db is not None:
+            collection = db[collection_name]
             if collection is not None:
                 return collection.find_one({field: value})
             else:
@@ -46,12 +68,10 @@ class MongoDriver:
 
     @staticmethod
     def insert_one(collection_name, document):
+        db = MongoDriver.get_db_instance()
 
-        if MongoDriver.client is None:
-            MongoDriver.initialize()
-
-        if MongoDriver.db is not None:
-            collection = MongoDriver.db[collection_name]
+        if db is not None:
+            collection = db[collection_name]
             try:
                 insert_result = collection.insert_one(document)
                 return insert_result.inserted_id
@@ -60,19 +80,16 @@ class MongoDriver:
                     "TypeError occured when inserting documents to collection."
                 )
 
-
     @staticmethod
     def insert_many_reset_collection(collection_name, documents):
-        if MongoDriver.client is None:
-            MongoDriver.initialize()
+        db = MongoDriver.get_db_instance()
 
-        if MongoDriver.db is not None:
-            
-            MongoDriver.drop_collection_if_exists(collection_name)
+        MongoDriver.drop_collection_if_exists(collection_name)
 
-            Logger.log_info("Start batch insert to collection: " + collection_name)
+        Logger.log_info("Start batch insert to collection: " + collection_name)
 
-            collection = MongoDriver.db[collection_name]
+        if db is not None:
+            collection = db[collection_name]
             if collection is not None:
                 try:
                     collection.insert_many(documents)
@@ -83,16 +100,14 @@ class MongoDriver:
 
             Logger.log_info("Completed batch insert to collection:  " + collection_name)
 
-
     @staticmethod
     def insert_many(collection_name, documents):
-        if MongoDriver.client is None:
-            MongoDriver.initialize()
+        db = MongoDriver.get_db_instance()
 
-        if MongoDriver.db is not None:
+        if db is not None:
             MongoDriver.drop_collection_if_exists(collection_name)
 
-            collection = MongoDriver.db[collection_name]
+            collection = db[collection_name]
             if collection is not None:
                 try:
                     collection.insert_many(documents)
@@ -100,4 +115,3 @@ class MongoDriver:
                     Logger.log_error(
                         "TypeError occured when inserting documents to collection."
                     )
-

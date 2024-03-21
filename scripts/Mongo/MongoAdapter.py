@@ -1,5 +1,6 @@
 from Services.LoggerService import LoggerService as Logger
 from pymongo import MongoClient
+import re
 
 
 class MongoDriver:
@@ -37,8 +38,11 @@ class MongoDriver:
     def drop_collection_if_exists(collectionName):
         db = MongoDriver.get_db_instance()
         if db is not None:
-            if collectionName in db.list_collection_names():
-                db[collectionName].drop()
+            regex = re.compile(r"^" + collectionName + r"(_\d{1}m)?$")
+
+            for collection in list(db.list_collection_names()):
+                if re.match(regex, collection):
+                    db[collection].drop()
 
     @staticmethod
     def get_collection_names():

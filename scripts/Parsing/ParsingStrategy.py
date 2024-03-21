@@ -8,5 +8,9 @@ class ParsingStrategy(ABC):
         pass
 
     @abstractmethod
-    def extract_record(self, observation) -> Dict[str, Any]:
+    def build_observation(self, observation, buffer) -> Dict[str, Any]:
         return dict
+
+    @abstractmethod
+    def update_observation(self, existing_observation, observation, buffer):
+        pass

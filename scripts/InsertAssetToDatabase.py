@@ -30,10 +30,8 @@ def get_record_parser():
         return Landsat8ParsingStrategy()
 
 
-def generate_collection_name(asset_id: str, buffer: str):
-    return "c{}_{}_{}_{}m".format(
-        get_collection_id(), get_dataset_id(), asset_id, buffer
-    )
+def generate_collection_name(asset_id: str):
+    return "c{}_{}_{}".format(get_collection_id(), get_dataset_id(), asset_id)
 
 
 def get_collection_id():
@@ -77,11 +75,11 @@ def get_asset_file_regex(buffer):
         return r"[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.{0}m.csv".format(buffer)
 
 
-def process_data(filePath, asset_id, buffer):
-    records = []
+def get_observation_hash(observation):
+    return "{}_{}".format(observation[2], observation[20])
 
-    record_collection_name = generate_collection_name(asset_id, buffer)
 
+def process_data(observation_records, filePath, buffer):
     parsing_strategy = get_record_parser()
 
     with open(filePath, "r") as file:
@@ -92,15 +90,18 @@ def process_data(filePath, asset_id, buffer):
 
         for observation in reader:
             if len(observation) != 0:
-                image_record = parsing_strategy.extract_image_record(observation)
-                record = parsing_strategy.extract_record(observation)
-                record["image"] = image_record
-                records.append(record)
+                observation_hash = get_observation_hash(observation)
 
-        try:
-            MongoDriver.insert_many_reset_collection(record_collection_name, records)
-        except Exception as error:
-            Logger.log_error(error)
+                if observation_hash in observation_records:
+                    parsing_strategy.update_observation(
+                        observation_records[observation_hash], observation, buffer
+                    )
+                else:
+                    image_record = parsing_strategy.extract_image_record(observation)
+                    record = parsing_strategy.build_observation(observation, buffer)
+                    record["image"] = image_record
+
+                    observation_records[observation_hash] = record
 
 
 def get_asset_id_from_file_name(file_name):
@@ -124,6 +125,8 @@ def process_asset(asset_id):
 
     processes = []
 
+    observation_records = {}
+
     for buffer in BUFFERS:
         for file in all_files:
             s = get_asset_file_regex(buffer)
@@ -133,17 +136,25 @@ def process_asset(asset_id):
                 asset_id = get_asset_id_from_file_name(file)
                 file_path = os.path.join(folder_path, file)
 
-                process = Process(
-                    target=process_data, args=(file_path, asset_id, buffer)
-                )
+                # process = Process(
+                #     target=process_data, args=(file_path, asset_id, buffer)
+                # )
+                #
+                # processes.append(process)
 
-                processes.append(process)
-                process.start()
+                process_data(observation_records, file_path, buffer)
 
-                # process_data(dataset, file_path, asset_id, buffer)
+    record_collection_name = generate_collection_name(asset_id)
 
-    for p in processes:
-        p.join()
+    try:
+        MongoDriver.insert_many_reset_collection(
+            record_collection_name, observation_records.values()
+        )
+    except Exception as error:
+        Logger.log_error(error)
+
+    # for p in processes:
+    #     p.join()
 
 
 def process_assets():

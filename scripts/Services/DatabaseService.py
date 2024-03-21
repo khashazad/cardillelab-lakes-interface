@@ -12,6 +12,7 @@ from Services.LoggerService import LoggerService as Logger
 
 from multiprocessing import Process
 
+
 def process_data(dataset, filePath, asset_id, buffer):
     records = []
 
@@ -27,13 +28,14 @@ def process_data(dataset, filePath, asset_id, buffer):
 
         for observation in reader:
             image_record = parsing_strategy.extract_image_record(observation)
-            record = parsing_strategy.extract_record(observation)
-            record["image"] = image_record;
+            record = parsing_strategy.build_observation(observation)
+            record["image"] = image_record
             records.append(record)
         try:
             MongoDriver.insert_many_reset_collection(record_collection_name, records)
         except Exception as error:
             Logger.log_error(error)
+
 
 def get_record_parser(dataset):
     if dataset == Datasets.LANDSAT8:
@@ -63,6 +65,7 @@ def process_assets(dataset: Datasets):
 
                 process_asset(dataset, asset_id)
 
+
 def getCollectionId(collection: Collections):
     if collection == Collections.Collection1:
         return "1"
@@ -72,12 +75,14 @@ def getCollectionId(collection: Collections):
         return "3"
     return ""
 
+
 def getDatasetId(dataset: Datasets):
     if dataset == Datasets.LANDSAT8:
         return "Landsat8"
     if dataset == Datasets.SENTINEL2:
         return "Sentinel2"
     return ""
+
 
 def getAssetsFolderName(collection: Collections, dataset: Datasets):
     return "{} - Fishnet {}".format(getDatasetId, getCollectionId(collection))
@@ -87,7 +92,11 @@ def getAssetsFolderName(collection: Collections, dataset: Datasets):
 def process_asset(dataset, asset_id):
     Logger.log_info("Processing assest {}".format(asset_id))
 
-    folder_path = "{}/{}/fish_ID{}".format(constants.PATH_DB_Assets_FOLDER, getAssetsFolderName(Collections.Collection2, dataset), asset_id)
+    folder_path = "{}/{}/fish_ID{}".format(
+        constants.PATH_DB_Assets_FOLDER,
+        getAssetsFolderName(Collections.Collection2, dataset),
+        asset_id,
+    )
 
     all_files = os.listdir(folder_path)
 
@@ -104,13 +113,15 @@ def process_asset(dataset, asset_id):
                 asset_id = split_file_name[2].split("D")[1]
                 file_path = os.path.join(folder_path, f)
 
-                process = Process(target=process_data, args=(dataset, file_path, asset_id, buffer))
+                process = Process(
+                    target=process_data, args=(dataset, file_path, asset_id, buffer)
+                )
 
                 processes.append(process)
                 process.start()
 
                 # process_data(dataset, file_path, asset_id, buffer)
-            
+
     for p in processes:
         p.join()
 

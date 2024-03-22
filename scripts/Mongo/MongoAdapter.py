@@ -38,11 +38,7 @@ class MongoDriver:
     def drop_collection_if_exists(collectionName):
         db = MongoDriver.get_db_instance()
         if db is not None:
-            regex = re.compile(r"^" + collectionName + r"(_\d{1}m)?$")
-
-            for collection in list(db.list_collection_names()):
-                if re.match(regex, collection):
-                    db[collection].drop()
+            db[collectionName].drop()
 
     @staticmethod
     def get_collection_names():

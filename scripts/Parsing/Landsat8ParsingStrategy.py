@@ -27,19 +27,37 @@ class Landsat8ParsingStrategy(ParsingStrategy):
         else:
             return overvation_qa_pixel
 
-    def extract_record(self, observation):
+    def update_observation(self, existing_observation, observation, buffer):
+        existing_observation["qa_pixel"][str(buffer)] = int(
+            self.__validate_qa_pixel(observation)
+        )
+        existing_observation["qa_radsat"][str(buffer)] = round(float(observation[4]), 4)
+        existing_observation["sr_band1"][str(buffer)] = round(float(observation[5]), 4)
+        existing_observation["sr_band2"][str(buffer)] = round(float(observation[6]), 4)
+        existing_observation["sr_band3"][str(buffer)] = round(float(observation[7]), 4)
+        existing_observation["sr_band4"][str(buffer)] = round(float(observation[8]), 4)
+        existing_observation["sr_band5"][str(buffer)] = round(float(observation[9]), 4)
+        existing_observation["sr_band6"][str(buffer)] = round(float(observation[10]), 4)
+        existing_observation["sr_band7"][str(buffer)] = round(float(observation[11]), 4)
+        existing_observation["sr_qa_aerosol"][str(buffer)] = round(
+            float(observation[12]), 4
+        )
+        existing_observation["st_band10"][str(buffer)] = round(
+            float(observation[13]), 4
+        )
+
+    def build_observation(self, observation, buffer):
         return {
-            # "system_index": observation[0],
             "hylak_id": int(float(observation[2])),
-            "qa_pixel": int(self.__validate_qa_pixel(observation)),
-            "qa_radsat": round(float(observation[4]), 4),
-            "sr_band1": round(float(observation[5]), 4),
-            "sr_band2": round(float(observation[6]), 4),
-            "sr_band3": round(float(observation[7]), 4),
-            "sr_band4": round(float(observation[8]), 4),
-            "sr_band5": round(float(observation[9]), 4),
-            "sr_band6": round(float(observation[10]), 4),
-            "sr_band7": round(float(observation[11]), 4),
-            "sr_qa_aerosol": round(float(observation[12]), 4),
-            "st_band10": round(float(observation[13]), 4),
+            "qa_pixel": {str(buffer): int(self.__validate_qa_pixel(observation))},
+            "qa_radsat": {str(buffer): round(float(observation[4]), 4)},
+            "sr_band1": {str(buffer): round(float(observation[5]), 4)},
+            "sr_band2": {str(buffer): round(float(observation[6]), 4)},
+            "sr_band3": {str(buffer): round(float(observation[7]), 4)},
+            "sr_band4": {str(buffer): round(float(observation[8]), 4)},
+            "sr_band5": {str(buffer): round(float(observation[9]), 4)},
+            "sr_band6": {str(buffer): round(float(observation[10]), 4)},
+            "sr_band7": {str(buffer): round(float(observation[11]), 4)},
+            "sr_qa_aerosol": {str(buffer): round(float(observation[12]), 4)},
+            "st_band10": {str(buffer): round(float(observation[13]), 4)},
         }

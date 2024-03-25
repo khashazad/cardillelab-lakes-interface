@@ -2,7 +2,7 @@
 
 import clientPromise from "@/lib/mongodb";
 
-export async function FetchLakeData(lakeId: string) {
+export async function FetchLakeData(lakeId: string, year: string) {
   try {
     const client = await clientPromise;
     const db = client.db("Lakes");
@@ -16,9 +16,12 @@ export async function FetchLakeData(lakeId: string) {
 
     const collection = `c${asset_collection}_l8_${asset_id}`;
 
+    const query = { hylak_id: Number(lakeId), "image.year": Number(year) };
+
     const observations = await db
       .collection(collection)
-      .find({ hylak_id: Number(lakeId) })
+      .find(query)
+      .sort({ "image.month": 1, "image.doy": 1 })
       .toArray();
 
     return observations;

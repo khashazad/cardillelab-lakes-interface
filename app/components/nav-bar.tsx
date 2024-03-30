@@ -56,6 +56,18 @@ export default function NavBar() {
             >
               Common Queries
             </Link>
+
+            <Link
+              href="/explorer"
+              className={cn(
+                "navItem transition-all hover:text-foreground/80 hover:scale-105",
+                pathname.includes("explorer")
+                  ? "text-foreground"
+                  : "text-foreground/60",
+              )}
+            >
+              Observation Viewer
+            </Link>
           </nav>
         </div>
       </div>

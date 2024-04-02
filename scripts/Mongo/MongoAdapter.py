@@ -122,3 +122,31 @@ class MongoDriver:
                     Logger.log_error(
                         "TypeError occured when inserting documents to collection."
                     )
+
+    @staticmethod
+    def find(collection_name, filter):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            collection = db[collection_name]
+            documents = collection.find(filter)
+
+            if documents is None:
+                return []
+            else:
+                return list(documents)
+
+    @staticmethod
+    def aggregate(collection_name, pipeline):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            collection = db[collection_name]
+            documents = collection.aggregate(pipeline)
+
+            if documents is None:
+                return []
+            else:
+                return list(documents)
+        else:
+            return []

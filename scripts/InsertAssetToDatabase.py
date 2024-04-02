@@ -82,26 +82,29 @@ def get_observation_hash(observation):
 def process_data(observation_records, filePath, buffer):
     parsing_strategy = get_record_parser()
 
-    with open(filePath, "r") as file:
-        Logger.log_info("Procesing file: " + filePath)
+    try:
+        with open(filePath, "r") as file:
+            reader = csv.reader(file)
+            next(reader)  # skip header
 
-        reader = csv.reader(file)
-        next(reader)  # skip header
+            for observation in reader:
+                if len(observation) != 0:
+                    observation_hash = get_observation_hash(observation)
 
-        for observation in reader:
-            if len(observation) != 0:
-                observation_hash = get_observation_hash(observation)
+                    if observation_hash in observation_records:
+                        parsing_strategy.update_observation(
+                            observation_records[observation_hash], observation, buffer
+                        )
+                    else:
+                        image_record = parsing_strategy.extract_image_record(
+                            observation
+                        )
+                        record = parsing_strategy.build_observation(observation, buffer)
+                        record["image"] = image_record
 
-                if observation_hash in observation_records:
-                    parsing_strategy.update_observation(
-                        observation_records[observation_hash], observation, buffer
-                    )
-                else:
-                    image_record = parsing_strategy.extract_image_record(observation)
-                    record = parsing_strategy.build_observation(observation, buffer)
-                    record["image"] = image_record
-
-                    observation_records[observation_hash] = record
+                        observation_records[observation_hash] = record
+    except:
+        Logger.log_error("Couldnt read file {}".format(filePath))
 
 
 def get_asset_id_from_file_name(file_name):

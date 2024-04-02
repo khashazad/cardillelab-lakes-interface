@@ -1,5 +1,6 @@
 import logging
 
+
 class LoggerService:
     infoLogger = None
     errorLogger = None

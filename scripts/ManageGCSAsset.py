@@ -134,7 +134,7 @@ def processAsset(asset_id, asset_size):
             if Operation == Operations.DOWNLOAD:
                 downloadFiles(file_name, asset_id, asset_size, buffer)
         except:
-            Logger.log_error(asset_id)
+            Logger.log_error("Asset file not found: {}".format(asset_id))
         else:
             Logger.log_info("Processed file {}".format(file_name))
 

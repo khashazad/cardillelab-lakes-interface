@@ -1,15 +1,22 @@
 from Constants.Constants import Collections
 from Mongo.MongoAdapter import MongoDriver
-from Services.LoggerService import LoggerService as Logger
+from Services.Logger import Logger
+from Services.StaticCounter import StaticCounter as Counter
+
 import os
 import csv
+import re
 
-COLLECTION = Collections.Collection1
+counter = Counter()
+logger = Logger("export_info.log", "export_error_log")
+
+COLLECTION = Collections.Collection2
 CLOUD_THRESHOLD = 50.0
 BUFFER = 60
 OUTPUT_FILE_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), r"Export/Landsat8-Fishnet2.csv"
 )
+COLLECTION_REGEX = re.compile(r"^c2_l8_\d{1,3}$")
 
 HEADERS = [
     "hylak_id",
@@ -68,7 +75,7 @@ def write_rows_to_output_file(rows):
         writer.writerows(rows)
 
 
-def exportDataFromCollection(collection_name):
+def export_collection_observations(collection_name):
     asset_id = collection_name.split("_")[2]
     pipeline = [
         {"$match": {"image.cloud_cover": {"$lt": CLOUD_THRESHOLD}}},
@@ -99,13 +106,28 @@ def exportDataFromCollection(collection_name):
 
     sorted_observations = list(map((lambda obs: format_observation(obs)), observations))
 
+    observation_count = len(sorted_observations)
+
+    logger.log_info(
+        "Writing {} records from collection {}".format(
+            observation_count, collection_name
+        )
+    )
     write_rows_to_output_file(sorted_observations)
+    logger.log_info("Finished writing records.")
+    counter.increment(observation_count)
+
+
+def process_collections():
+    all_collections = MongoDriver.get_collection_names()
+
+    for collection in all_collections:
+        if COLLECTION_REGEX.match(collection):
+            export_collection_observations(collection)
 
 
 if __name__ == "__main__":
-    collection_name = "c2_l8_112"
-
     # write the header
     write_rows_to_output_file([HEADERS])
 
-    exportDataFromCollection(collection_name)
+    process_collections()

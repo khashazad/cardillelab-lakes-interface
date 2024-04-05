@@ -1,8 +1,9 @@
 import pandas as pd
+import os
 
 CHUNK_SIZE = 50000
-csv_file_list = ["file1.csv", "file2.csv"]
-output_file = ""
+csv_file_list = [os.path.abspath("D:/Lansat8-Fishnet1.csv"), os.path.abspath("D:/Lansat8-Fishnet2.csv")]
+output_file = "D:/Landsat8 - Fishnet 1 & 2 (60m).csv"
 
 first_one = True
 for csv_file_name in csv_file_list:

@@ -8,15 +8,17 @@ import csv
 import re
 
 counter = Counter()
-logger = Logger("export_info.log", "export_error_log")
+logger = Logger("export_info.log", "export_error.log")
 
-COLLECTION = Collections.Collection2
+COLLECTION = Collections.Collection1
 CLOUD_THRESHOLD = 50.0
 BUFFER = 60
-OUTPUT_FILE_PATH = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), r"Export/Landsat8-Fishnet2.csv"
-)
-COLLECTION_REGEX = re.compile(r"^c2_l8_\d{1,3}$")
+# OUTPUT_FILE_PATH = os.path.join(
+#     os.path.dirname(os.path.realpath(__file__)), r"Export/Landsat8-Fishnet2.csv"
+# )
+OUTPUT_FILE_PATH = os.path.abspath("D:/Lansat8-Fishnet1.csv")
+
+COLLECTION_REGEX = re.compile(r"^c1_l8_\d{1,3}$")
 
 HEADERS = [
     "hylak_id",
@@ -123,7 +125,10 @@ def process_collections():
 
     for collection in all_collections:
         if COLLECTION_REGEX.match(collection):
-            export_collection_observations(collection)
+            try: 
+                export_collection_observations(collection)
+            except Exception as error:
+                logger.log_error("Exception occured while fetching data for collection: {} -{}".format(collection, error))
 
 
 if __name__ == "__main__":

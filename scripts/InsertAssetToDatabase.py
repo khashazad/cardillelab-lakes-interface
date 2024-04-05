@@ -79,7 +79,7 @@ def get_observation_hash(observation):
     return "{}_{}".format(observation[2], observation[20])
 
 
-def process_data(observation_records, filePath, buffer):
+def process_data(observation_records, filePath, buffer, asset_id):
     parsing_strategy = get_record_parser()
 
     try:
@@ -99,6 +99,14 @@ def process_data(observation_records, filePath, buffer):
                         image_record = parsing_strategy.extract_image_record(
                             observation
                         )
+
+                        if (
+                            COLLECTION == Collections.Collection2
+                            and int(asset_id) == 14
+                        ):
+                            date = image_record["date"].split("/")
+                            image_record["date"] = f"{date[2]}-{date[0]}-{date[1]}"
+
                         record = parsing_strategy.build_observation(observation, buffer)
                         record["image"] = image_record
 

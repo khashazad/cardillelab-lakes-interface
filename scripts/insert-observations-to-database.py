@@ -8,8 +8,6 @@ import csv
 import os
 import re
 
-from multiprocessing import Process
-
 # Configuration
 COLLECTION = Collections.Collection1
 DATASET = Datasets.LANDSAT8
@@ -89,30 +87,39 @@ def process_data(observation_records, filePath, buffer, asset_id):
 
             for observation in reader:
                 if len(observation) != 0:
-                    observation_hash = get_observation_hash(observation)
+                    try:
+                        observation_hash = get_observation_hash(observation)
 
-                    if observation_hash in observation_records:
-                        parsing_strategy.update_observation(
-                            observation_records[observation_hash], observation, buffer
+                        if observation_hash in observation_records:
+                            parsing_strategy.update_observation(
+                                observation_records[observation_hash],
+                                observation,
+                                buffer,
+                            )
+                        else:
+                            image_record = parsing_strategy.extract_image_record(
+                                observation
+                            )
+
+                            if (
+                                COLLECTION == Collections.Collection2
+                                and int(asset_id) == 14
+                            ):
+                                date = image_record["date"].split("/")
+                                image_record["date"] = f"{date[2]}-{date[0]}-{date[1]}"
+
+                            record = parsing_strategy.build_observation(
+                                observation, buffer
+                            )
+                            record["image"] = image_record
+
+                            observation_records[observation_hash] = record
+                    except Exception as e:
+                        Logger.log_error(
+                            f"Error parsing observation for asset {asset_id}: {e}"
                         )
-                    else:
-                        image_record = parsing_strategy.extract_image_record(
-                            observation
-                        )
-
-                        if (
-                            COLLECTION == Collections.Collection2
-                            and int(asset_id) == 14
-                        ):
-                            date = image_record["date"].split("/")
-                            image_record["date"] = f"{date[2]}-{date[0]}-{date[1]}"
-
-                        record = parsing_strategy.build_observation(observation, buffer)
-                        record["image"] = image_record
-
-                        observation_records[observation_hash] = record
-    except:
-        Logger.log_error("Couldnt read file {}".format(filePath))
+    except Exception as e:
+        Logger.log_error(f"Couldnt read file {filePath}: {e}")
 
 
 def get_asset_id_from_file_name(file_name):
@@ -153,7 +160,7 @@ def process_asset(asset_id):
                 #
                 # processes.append(process)
 
-                process_data(observation_records, file_path, buffer)
+                process_data(observation_records, file_path, buffer, asset_id)
 
     record_collection_name = generate_collection_name(asset_id)
 

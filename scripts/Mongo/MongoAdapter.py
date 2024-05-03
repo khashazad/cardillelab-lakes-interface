@@ -1,6 +1,5 @@
 from Services.LoggerService import LoggerService as Logger
 from pymongo import MongoClient
-import re
 
 
 class MongoDriver:
@@ -122,3 +121,38 @@ class MongoDriver:
                     Logger.log_error(
                         "TypeError occured when inserting documents to collection."
                     )
+
+    @staticmethod
+    def find(collection_name, filter):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            collection = db[collection_name]
+            documents = collection.find(filter)
+
+            if documents is None:
+                return []
+            else:
+                return list(documents)
+
+    @staticmethod
+    def aggregate(collection_name, pipeline):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            collection = db[collection_name]
+            documents = collection.aggregate(pipeline)
+
+            if documents is None:
+                return []
+            else:
+                return list(documents)
+        else:
+            return []
+
+    @staticmethod
+    def remove(collection_name, filter):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            db[collection_name].delete_many(filter)

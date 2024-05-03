@@ -8,10 +8,8 @@ import csv
 import os
 import re
 
-from multiprocessing import Process
-
 # Configuration
-COLLECTION = Collections.Collection1
+COLLECTION = Collections.Collection3
 DATASET = Datasets.LANDSAT8
 BUFFERS = [60]
 
@@ -19,7 +17,7 @@ BUFFERS = [60]
 PATH_DB_Assets_FOLDER = os.path.abspath("/Volumes/Files/")
 
 PATH_ASSETS_INSERT_DB = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), r"Assets/assetsToInsert.csv"
+    os.path.dirname(os.path.realpath(__file__)), r"Assets/assets-to-insert.csv"
 )
 
 
@@ -39,7 +37,7 @@ def get_collection_id():
         return "1"
     if COLLECTION == Collections.Collection2:
         return "2"
-    if COLLECTION == Collections.Collection2:
+    if COLLECTION == Collections.Collection3:
         return "3"
     return ""
 
@@ -61,7 +59,7 @@ def get_assets_folder_dataset_prefix():
 
 
 def get_assets_folder_path():
-    return "{} - Fishnet {}".format(
+    return "{} - Fishnet{}".format(
         get_assets_folder_dataset_prefix(), get_collection_id()
     )
 
@@ -79,29 +77,49 @@ def get_observation_hash(observation):
     return "{}_{}".format(observation[2], observation[20])
 
 
-def process_data(observation_records, filePath, buffer):
+def process_data(observation_records, filePath, buffer, asset_id):
     parsing_strategy = get_record_parser()
 
-    with open(filePath, "r") as file:
-        Logger.log_info("Procesing file: " + filePath)
+    try:
+        with open(filePath, "r") as file:
+            reader = csv.reader(file)
+            next(reader)  # skip header
 
-        reader = csv.reader(file)
-        next(reader)  # skip header
+            for observation in reader:
+                if len(observation) != 0:
+                    try:
+                        observation_hash = get_observation_hash(observation)
 
-        for observation in reader:
-            if len(observation) != 0:
-                observation_hash = get_observation_hash(observation)
+                        if observation_hash in observation_records:
+                            parsing_strategy.update_observation(
+                                observation_records[observation_hash],
+                                observation,
+                                buffer,
+                            )
+                        else:
+                            image_record = parsing_strategy.extract_image_record(
+                                observation
+                            )
 
-                if observation_hash in observation_records:
-                    parsing_strategy.update_observation(
-                        observation_records[observation_hash], observation, buffer
-                    )
-                else:
-                    image_record = parsing_strategy.extract_image_record(observation)
-                    record = parsing_strategy.build_observation(observation, buffer)
-                    record["image"] = image_record
+                            if (
+                                COLLECTION == Collections.Collection2
+                                and int(asset_id) == 14
+                            ):
+                                date = image_record["date"].split("/")
+                                image_record["date"] = f"{date[2]}-{date[0]}-{date[1]}"
 
-                    observation_records[observation_hash] = record
+                            record = parsing_strategy.build_observation(
+                                observation, buffer
+                            )
+                            record["image"] = image_record
+
+                            observation_records[observation_hash] = record
+                    except Exception as e:
+                        Logger.log_error(
+                            f"Error parsing observation for asset {asset_id}: {e}"
+                        )
+    except Exception as e:
+        Logger.log_error(f"Couldnt read file {filePath}: {e}")
 
 
 def get_asset_id_from_file_name(file_name):
@@ -142,7 +160,7 @@ def process_asset(asset_id):
                 #
                 # processes.append(process)
 
-                process_data(observation_records, file_path, buffer)
+                process_data(observation_records, file_path, buffer, asset_id)
 
     record_collection_name = generate_collection_name(asset_id)
 

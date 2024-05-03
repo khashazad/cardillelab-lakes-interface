@@ -9,7 +9,7 @@ import os
 import re
 
 # Configuration
-COLLECTION = Collections.Collection1
+COLLECTION = Collections.Collection3
 DATASET = Datasets.LANDSAT8
 BUFFERS = [60]
 
@@ -17,7 +17,7 @@ BUFFERS = [60]
 PATH_DB_Assets_FOLDER = os.path.abspath("/Volumes/Files/")
 
 PATH_ASSETS_INSERT_DB = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), r"Assets/assetsToInsert.csv"
+    os.path.dirname(os.path.realpath(__file__)), r"Assets/assets-to-insert.csv"
 )
 
 
@@ -37,7 +37,7 @@ def get_collection_id():
         return "1"
     if COLLECTION == Collections.Collection2:
         return "2"
-    if COLLECTION == Collections.Collection2:
+    if COLLECTION == Collections.Collection3:
         return "3"
     return ""
 
@@ -59,7 +59,7 @@ def get_assets_folder_dataset_prefix():
 
 
 def get_assets_folder_path():
-    return "{} - Fishnet {}".format(
+    return "{} - Fishnet{}".format(
         get_assets_folder_dataset_prefix(), get_collection_id()
     )
 

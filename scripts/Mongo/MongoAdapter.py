@@ -1,6 +1,5 @@
 from Services.LoggerService import LoggerService as Logger
 from pymongo import MongoClient
-import re
 
 
 class MongoDriver:
@@ -150,3 +149,10 @@ class MongoDriver:
                 return list(documents)
         else:
             return []
+
+    @staticmethod
+    def remove(collection_name, filter):
+        db = MongoDriver.get_db_instance()
+
+        if db is not None:
+            db[collection_name].delete_many(filter)

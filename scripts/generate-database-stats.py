@@ -4,9 +4,8 @@ from pprint import pprint
 
 from Mongo.MongoAdapter import MongoDriver
 
-BUFFERS = [1, 10, 15, 20, 30, 40, 60, 90, 100, 125, 250]
 DATASET = "L8"
-ASSET_COLLECTION = 1
+ASSET_COLLECTION = 3
 
 
 def get_assets_from_lookup_collection():
@@ -28,17 +27,6 @@ def get_dataset_name():
         return "Sentinel2"
 
 
-def generate_collection_names_for_asset(asset_id):
-    collections = []
-
-    for buffer in BUFFERS:
-        collections.append(
-            "c{}_{}_{}_{}m".format(ASSET_COLLECTION, DATASET.lower(), asset_id, buffer)
-        )
-
-    return collections
-
-
 def generate_collection_names_grouped_by_asset():
     assets = list(
         {
@@ -53,25 +41,28 @@ def generate_collection_names_grouped_by_asset():
     collection_names_per_asset = []
 
     for asset in assets:
-        collection_names_per_asset.append(generate_collection_names_for_asset(asset))
+        collection_names_per_asset.append(
+            f"c{ASSET_COLLECTION}_{DATASET.lower()}_{asset}"
+        )
 
     return collection_names_per_asset
 
 
-def get_stats_for_asset(asset_collections):
+def get_stats_for_asset(collection_name):
     existing_collections = MongoDriver.get_collection_names()
 
-    properties = asset_collections[0].split("_")
+    print(existing_collections)
+
+    properties = collection_name.split("_")
 
     asset_id = properties[2]
 
     asset_stats = [asset_id]
 
-    for collection_name in asset_collections:
-        if collection_name in existing_collections:
-            asset_stats.append(str(get_collection_count(collection_name)))
-        else:
-            asset_stats.append("-")
+    if collection_name in existing_collections:
+        asset_stats.append(str(get_collection_count(collection_name)))
+    else:
+        asset_stats.append("-")
 
     print("Stats for asset {}: ".format(asset_id), asset_stats)
 
@@ -88,7 +79,7 @@ def generate_report():
     with open(report_file_name, mode="w", newline="") as file:
         writer = csv.writer(file)
         # header row
-        writer.writerow(["Asset"] + [str(buffer) + "m" for buffer in BUFFERS])
+        writer.writerow(["Asset", "Count"])
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=50) as executor:
             asset_collections_stats = list(

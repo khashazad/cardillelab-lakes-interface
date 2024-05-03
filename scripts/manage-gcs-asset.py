@@ -13,14 +13,14 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
 )
 
 
-BUCKET = "landsat8-fishnet1-lake-harvest"
+BUCKET = "landsat8-fishnet3-lake-harvest"
 BUFFERS = [60]
-Collection = Collections.Collection1
+Collection = Collections.Collection3
 Operation = Operations.DOWNLOAD
 Dataset = Datasets.LANDSAT8
 
 PATH_ASSETS_TO_PROCESS = (
-    os.path.dirname(os.path.realpath(__file__)) + r"/Assets/assetsToProcess.csv"
+    os.path.dirname(os.path.realpath(__file__)) + r"/Assets/assets-to-process.csv"
 )
 
 DOWNLOAD_PATH = "/Volumes/Files/"
@@ -52,7 +52,7 @@ def buildGCSFileName(asset_id, asset_size, buffer):
     dataset = getDatasetPrefix(Dataset)
     collection = getCollectionName(Collection)
 
-    if Collection == Collections.Collection1:
+    if Collection == Collections.Collection1 or Collection == Collections.Collection3:
         return "{0}.{1}.ID{2}.{3}.{4}m.csv".format(
             dataset, collection, asset_id, asset_size, buffer
         )
@@ -132,8 +132,10 @@ def processAsset(asset_id, asset_size):
 
         try:
             if Operation == Operations.DOWNLOAD:
+                print(f"download file {file_name}")
                 downloadFiles(file_name, asset_id, asset_size, buffer)
-        except:
+        except Exception as e:
+            print(e)
             Logger.log_error("Asset file not found: {}".format(asset_id))
         else:
             Logger.log_info("Processed file {}".format(file_name))

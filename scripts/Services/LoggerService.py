@@ -17,11 +17,11 @@ class LoggerService:
             LoggerService.errorLogger.setLevel(logging.ERROR)
 
             # Create a file handler for info logs
-            info_file_handler = logging.FileHandler("info.log")
+            info_file_handler = logging.FileHandler("Logs/info.log")
             info_file_handler.setLevel(logging.INFO)
 
             # Create a file handler for error logs
-            error_file_handler = logging.FileHandler("error.log")
+            error_file_handler = logging.FileHandler("Logs/error.log")
             error_file_handler.setLevel(logging.ERROR)
 
             # Create a formatter

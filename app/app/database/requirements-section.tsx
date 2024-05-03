@@ -2,9 +2,9 @@ import Link from "next/link";
 import CompassPic from "@/public/compass.png";
 import Image from "next/image";
 
-export default function RequirementsPage() {
+export default async function RequirementsSection() {
   return (
-    <section className="flex min-h-screen flex-col space-y-8 p-20">
+    <section className="flex flex-col space-y-8 p-20">
       <h1
         className="flex justify-center text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl"
         id="Introduction"

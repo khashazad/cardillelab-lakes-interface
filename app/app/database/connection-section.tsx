@@ -5,7 +5,7 @@ import MainPagePic from "@/public/main-page.jpeg";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
-export default function ConnectionPage() {
+export default async function ConnectionSection() {
   return (
     <section className="flex min-h-screen flex-col space-y-8 p-20">
       <h1

@@ -6,7 +6,7 @@ import LakeLookupPic from "@/public/find-lake-asset.jpeg";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 
-export default function ConnectionPage() {
+export default async function QueriesSection() {
   return (
     <section className="flex min-h-screen flex-col space-y-8 p-20">
       <h1

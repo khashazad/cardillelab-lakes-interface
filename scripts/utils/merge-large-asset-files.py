@@ -1,22 +1,13 @@
 import os
 import re
 
-ASSETS = [
-    758,
-    952,
-    922,
-    926,
-    933,
-    934,
-    957,
-    959,
-    967,
-    984,
-]
+ASSETS = [49]
 
-SPLIT_FILE_PATH = os.path.abspath("/Volumes/Files/tmp")
+SPLIT_FILE_PATH = os.path.abspath("/Volumes/Files/fishID49/")
 
-OUTPUT_PATH = os.path.abspath("/Volumes/Files/Landsat8 - Fishnet 1")
+OUTPUT_PATH = os.path.abspath("/Volumes/Files/Landsat8 - Fishnet3")
+
+total_lake_count = 1063
 
 
 def get_files_matching_regex(directory, regex_pattern):
@@ -50,15 +41,15 @@ def merge_asset_files(asset):
 
     input_files.sort()
 
-    totla_lake_count = 0
-    for file in input_files:
-        totla_lake_count += int(file.split(".")[3])
+    # totla_lake_count = 0
+    # for file in input_files:
+    #     totla_lake_count += int(file.split(".")[3])
 
     for f in os.listdir(output_folder):
         os.unlink(os.path.join(output_folder, f))
 
     output_file_path = os.path.join(
-        output_folder, f"landsat8.fishID{asset}.{totla_lake_count}.60m.csv"
+        output_folder, f"landsat8.fishID{asset}.{total_lake_count}.60m.csv"
     )
 
     print(output_file_path)

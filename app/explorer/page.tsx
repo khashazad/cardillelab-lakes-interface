@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FetchLakeData } from "../actions";
 import { useState } from "react";
-import { LandsatObservation } from "@/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ButtonLoadingSpinner from "@/components/ui/button-loading-spinner";
@@ -36,97 +35,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TLakeSchema, lakeSchema } from "@/lib/validation-schemas";
-
-const YEARS = [
-  2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,
-];
-
-const BUFFERS = [
-  {
-    buffer: 1,
-    color: "#87CEEB",
-  },
-  {
-    buffer: 10,
-    color: "#DC143C",
-  },
-  {
-    buffer: 15,
-    color: "#228B22",
-  },
-  {
-    buffer: 30,
-    color: "#FFD700",
-  },
-  {
-    buffer: 40,
-    color: "#7851A9",
-  },
-  {
-    buffer: 60,
-    color: "#CC5500",
-  },
-  {
-    buffer: 90,
-    color: "#008080",
-  },
-  {
-    buffer: 100,
-    color: "#FF00FF",
-  },
-  {
-    buffer: 125,
-    color: "#708090",
-  },
-
-  {
-    buffer: 250,
-    color: "#40E0D0",
-  },
-];
-
-const BANDS = [
-  {
-    title: "Band 1 (ultra blue, coastal aerosol) surface reflectance",
-    key: "sr_band1",
-  },
-  {
-    title: "Band 2 (blue) surface reflectance	1",
-    key: "sr_band2",
-  },
-  {
-    title: "Band Band 3 (green) surface reflectance",
-    key: "sr_band3",
-  },
-  {
-    title: "Band 4 (red) surface reflectance",
-    key: "sr_band4",
-  },
-  {
-    title: "Band 5 (near infrared) surface reflectance",
-    key: "sr_band5",
-  },
-  {
-    title: "Band 6 (shortwave infrared 1) surface reflectance",
-    key: "sr_band6",
-  },
-  {
-    title: "Band 7 (shortwave infrared 2) surface reflectance",
-    key: "sr_band7",
-  },
-  {
-    title: "Band 10 surface temperature.",
-    key: "st_band10",
-  },
-  {
-    title: "Pixel quality",
-    key: "qa_pixel",
-  },
-  {
-    title: "Radiometric saturation",
-    key: "qa_radsat",
-  },
-];
+import { Bands, Buffers, LandsatObservation, Years } from "@/lib/types";
 
 export default function ExplorerPage() {
   const [observations, setObservations] = useState<LandsatObservation[]>([]);
@@ -204,7 +113,7 @@ export default function ExplorerPage() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {YEARS.map((year) => (
+                      {Years.map((year) => (
                         <SelectItem key={year} value={String(year)}>
                           {year.toString()}
                         </SelectItem>
@@ -232,9 +141,9 @@ export default function ExplorerPage() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {BANDS.map((band) => (
-                        <SelectItem key={band.key} value={band.key}>
-                          {band.title}
+                      {Bands.map((band) => (
+                        <SelectItem key={band.id} value={band.id}>
+                          {band.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -288,7 +197,7 @@ export default function ExplorerPage() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                {BUFFERS.map((buffer) => [
+                {Buffers.map((buffer) => [
                   <Line
                     type="monotone"
                     dataKey={`${getValues("band")}.${buffer.buffer}`}

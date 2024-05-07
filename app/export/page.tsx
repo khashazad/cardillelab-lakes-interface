@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TExportSchema, exportSchema } from "@/lib/validation-schemas";
-import { Bands } from "@/lib/types";
+import { Bands, Buffers, Fishnets, Years } from "@/lib/types";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
@@ -25,6 +25,9 @@ export default function ExportPage() {
     resolver: zodResolver(exportSchema),
     defaultValues: {
       bands: Bands.map((b) => b.id),
+      fishnets: Fishnets.map((f) => f.id),
+      years: Years.map((y) => y),
+      buffers: ["60"],
     },
   });
 
@@ -83,56 +86,208 @@ export default function ExportPage() {
                   </FormItem>
                 )}
               />
+
+              <Button type="submit">Generate File</Button>
             </div>
-            <FormField
-              control={form.control}
-              name="bands"
-              render={() => (
-                <FormItem>
-                  <div className="mb-4">
-                    <FormLabel className="text-base">Bands</FormLabel>
-                    <FormDescription>
-                      Select the bands you want to export
-                    </FormDescription>
-                  </div>
-                  {Bands.map((band: { id: string; name: string }) => (
-                    <FormField
-                      key={band.id}
-                      control={form.control}
-                      name="bands"
-                      render={({ field }: { field: any }) => {
-                        return (
-                          <FormItem
-                            key={band.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(band.id)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, band.id])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value: string) => value !== band.id,
-                                        ),
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="font-normal">
-                              {band.name}
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                  ))}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Submit</Button>
+            <div className="flex justify-start gap-36">
+              <FormField
+                control={form.control}
+                name="bands"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel className="text-base">Bands</FormLabel>
+                      <FormDescription>
+                        Select the bands you want to export
+                      </FormDescription>
+                    </div>
+                    {Bands.map((band: { id: string; name: string }) => (
+                      <FormField
+                        key={band.id}
+                        control={form.control}
+                        name="bands"
+                        render={({ field }: { field: any }) => {
+                          return (
+                            <FormItem
+                              key={band.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(band.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          band.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value: string) =>
+                                              value !== band.id,
+                                          ),
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {band.name}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="years"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel className="text-base">Year</FormLabel>
+                    </div>
+                    {Years.map((year) => (
+                      <FormField
+                        key={year}
+                        control={form.control}
+                        name="years"
+                        render={({ field }: { field: any }) => {
+                          return (
+                            <FormItem
+                              key={year}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(year)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, year])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value: string) =>
+                                              value !== String(year),
+                                          ),
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {year}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="buffers"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel className="text-base">Buffers</FormLabel>
+                    </div>
+                    {Buffers.map((buffer: { id: number }) => (
+                      <FormField
+                        key={buffer.id}
+                        control={form.control}
+                        name="buffers"
+                        render={({ field }: { field: any }) => {
+                          return (
+                            <FormItem
+                              key={buffer.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(buffer.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          buffer.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value: string) =>
+                                              value !== String(buffer.id),
+                                          ),
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {`${buffer.id} m`}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fishnets"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel className="text-base">Fishnets</FormLabel>
+                    </div>
+                    {Fishnets.map((fishnet: { id: number; name: string }) => (
+                      <FormField
+                        key={fishnet.id}
+                        control={form.control}
+                        name="fishnets"
+                        render={({ field }: { field: any }) => {
+                          return (
+                            <FormItem
+                              key={fishnet.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(fishnet.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          fishnet.id,
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value: string) =>
+                                              value !== String(fishnet.id),
+                                          ),
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {fishnet.name}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </form>
         </Form>
       </CardContent>

@@ -1,17 +1,10 @@
 "use client";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { FetchLakeData } from "../actions";
-import { FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
 import { LandsatObservation } from "@/types";
-import { lakeSchema, TLakeSchema } from "@/validation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ButtonLoadingSpinner from "@/components/ui/button-loading-spinner";
@@ -31,22 +24,18 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-  SelectGroup,
-  SelectLabel,
   SelectItem,
 } from "@/components/ui/select";
 
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-import Link from "next/link";
+import { TLakeSchema, lakeSchema } from "@/lib/validation-schemas";
 
 const YEARS = [
   2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024,

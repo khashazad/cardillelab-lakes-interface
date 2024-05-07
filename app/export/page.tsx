@@ -14,11 +14,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "@/components/ui/use-toast";
 import { TExportSchema, exportSchema } from "@/lib/validation-schemas";
 import { Bands } from "@/lib/types";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import axios from "axios";
 
 export default function ExportPage() {
   const form = useForm<TExportSchema>({
@@ -28,15 +28,13 @@ export default function ExportPage() {
     },
   });
 
-  function onSubmit(data: TExportSchema) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  async function onSubmit(data: TExportSchema) {
+    try {
+      console.log(data);
+      await axios.post("http://localhost:4000/exports", data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -45,27 +43,47 @@ export default function ExportPage() {
         Export Interface
       </CardTitle>
 
-      <CardContent className="pt-4">
+      <CardContent className="pt-16">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="w-1/4">
-                  <div className="">
+            <div className="flex justify-start gap-8">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="w-1/4">
                     <FormLabel className="text-base">Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
                     <FormDescription>
                       Give a name to this export
                     </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cloudCoverThreshold"
+                render={({ field }) => (
+                  <FormItem className="w-1/4">
+                    <FormLabel className="text-base">
+                      Cloud Cover Threshold
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(event) =>
+                          field.onChange(+event.target.value)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="bands"

@@ -40,7 +40,7 @@ export default function NavBar() {
               : "text-muted-foreground",
           )}
         >
-          Export Interface
+          Export Data
         </Link>
       </nav>
     </header>

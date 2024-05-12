@@ -5,11 +5,11 @@ export const Bands = [
   },
   {
     id: "sr_band2",
-    name: "Band 2 (blue) surface reflectance 1",
+    name: "Band 2 (blue) surface reflectance",
   },
   {
     id: "sr_band3",
-    name: "Band Band 3 (green) surface reflectance",
+    name: "Band 3 (green) surface reflectance",
   },
   {
     id: "sr_band4",

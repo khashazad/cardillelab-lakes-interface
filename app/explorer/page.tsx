@@ -200,7 +200,7 @@ export default function ExplorerPage() {
                 {Buffers.map((buffer) => [
                   <Line
                     type="monotone"
-                    dataKey={`${getValues("band")}.${buffer.buffer}`}
+                    dataKey={`${getValues("band")}.${buffer.id}`}
                     stroke={buffer.color}
                     activeDot={{ r: 8 }}
                   />,

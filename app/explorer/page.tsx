@@ -46,12 +46,7 @@ export default function ExplorerPage() {
     resolver: zodResolver(lakeSchema),
   });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    getValues,
-  } = form;
+  const { handleSubmit, getValues } = form;
 
   const onSubmit = async (data: TLakeSchema) => {
     setLoading(true);

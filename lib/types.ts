@@ -146,3 +146,13 @@ export const Fishnets = [
     name: "Fishnet 3",
   },
 ];
+
+export type ExportTask = {
+  _id: string;
+  name: string;
+  configuration: any;
+  status: string;
+  file: any;
+  createdOn: Date;
+  completedOn?: Date;
+};

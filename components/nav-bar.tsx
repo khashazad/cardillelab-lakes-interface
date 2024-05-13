@@ -32,7 +32,7 @@ export default function NavBar() {
           Observation Explorer
         </Link>
         <Link
-          href="export"
+          href="exports"
           className={cn(
             "text-muted-foreground transition-colors hover:text-foreground",
             pathname?.includes("export")

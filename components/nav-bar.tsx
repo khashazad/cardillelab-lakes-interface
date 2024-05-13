@@ -10,7 +10,7 @@ export default function NavBar() {
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
         <Link
-          href="database"
+          href="/database"
           className={cn(
             "text-muted-foreground transition-colors hover:text-foreground",
             pathname?.includes("database")
@@ -21,7 +21,7 @@ export default function NavBar() {
           Database
         </Link>
         <Link
-          href="explorer"
+          href="/explorer"
           className={cn(
             "text-muted-foreground transition-colors hover:text-foreground",
             pathname?.includes("explorer")
@@ -32,7 +32,7 @@ export default function NavBar() {
           Observation Explorer
         </Link>
         <Link
-          href="exports"
+          href="/exports/list"
           className={cn(
             "text-muted-foreground transition-colors hover:text-foreground",
             pathname?.includes("export")

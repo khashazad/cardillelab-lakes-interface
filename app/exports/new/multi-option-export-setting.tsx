@@ -76,6 +76,7 @@ export default function MultiOptionExportSetting({
           <div className="flex gap-x-2 w-full mt-16">
             <Button
               className="grow"
+              type="button"
               onClick={() =>
                 form.setValue(
                   name,
@@ -87,6 +88,7 @@ export default function MultiOptionExportSetting({
             </Button>
             <Button
               className="grow"
+              type="button"
               variant="secondary"
               onClick={() => form.setValue(name, [options[0].id])}
             >

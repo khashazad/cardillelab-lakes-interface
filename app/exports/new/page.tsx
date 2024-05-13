@@ -20,8 +20,11 @@ import { Input } from "@/components/ui/input";
 import axios from "axios";
 import { Separator } from "@/components/ui/separator";
 import MultiOptionExportSetting from "./multi-option-export-setting";
+import { useRouter } from "next/navigation";
 
 export default function ExportPage() {
+  const router = useRouter();
+
   const form = useForm<TExportSchema>({
     resolver: zodResolver(exportSchema),
     defaultValues: {
@@ -35,7 +38,6 @@ export default function ExportPage() {
   async function onSubmit(data: TExportSchema) {
     const { buffers, fishnets, years, cloudCoverThreshold, ...config } = data;
     try {
-      console.log(data);
       await axios.post("http://localhost:4000/exports", {
         fishnets: fishnets.map((f) => Number(f)),
         years: years.map((y) => Number(y)),
@@ -43,6 +45,8 @@ export default function ExportPage() {
         cloudCoverThreshold: Number(cloudCoverThreshold),
         ...config,
       });
+      router.push("/exports/list");
+      router.refresh();
     } catch (error) {
       console.error(error);
     }

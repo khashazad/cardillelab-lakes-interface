@@ -2,7 +2,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FetchLakeData } from "../actions";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +35,7 @@ import {
 } from "@/components/ui/form";
 import { TLakeSchema, lakeSchema } from "@/lib/validation-schemas";
 import { Bands, Buffers, LandsatObservation, Years } from "@/lib/types";
+import { FetchLakeDataAsync } from "@/actions";
 
 export default function ExplorerPage() {
   const [observations, setObservations] = useState<LandsatObservation[]>([]);
@@ -51,7 +51,7 @@ export default function ExplorerPage() {
   const onSubmit = async (data: TLakeSchema) => {
     setLoading(true);
     try {
-      const result = await FetchLakeData(data.lakeId, data.year);
+      const result = await FetchLakeDataAsync(data.lakeId, data.year);
 
       if (result.length == 0) {
         setError("No observations found for the specified lake");

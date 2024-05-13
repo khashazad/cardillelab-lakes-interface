@@ -152,6 +152,8 @@ export type ExportTask = {
   name: string;
   configuration: any;
   status: string;
+  progress?: number;
+  fileSize?: number;
   file: any;
   createdOn: Date;
   completedOn?: Date;

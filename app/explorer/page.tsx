@@ -194,6 +194,7 @@ export default function ExplorerPage() {
                 <Legend />
                 {Buffers.map((buffer) => [
                   <Line
+                    key={buffer.id}
                     type="monotone"
                     dataKey={`${getValues("band")}.${buffer.id}`}
                     stroke={buffer.color}

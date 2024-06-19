@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner";
 
-const deleteExportComponent = ({ row }: { row: Row<ExportTask> }) => {
+const DeleteExportComponent = ({ row }: { row: Row<ExportTask> }) => {
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
@@ -121,6 +121,6 @@ export const columns: ColumnDef<ExportTask>[] = [
   },
   {
     id: "delete",
-    cell: deleteExportComponent,
+    cell: DeleteExportComponent,
   },
 ];

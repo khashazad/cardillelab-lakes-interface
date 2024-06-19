@@ -32,6 +32,10 @@ export async function FetchLakeDataAsync(lakeId: string, year: string) {
   }
 }
 
+export async function createExportTaskAsync(payload: any) {
+  await axios.post(`${getEnvVaribale("API_URI")}/exports`, payload);
+}
+
 export async function fetchExportTasksAsync() {
   try {
     const response = await axios.get(`${getEnvVaribale("API_URI")}/exports`);

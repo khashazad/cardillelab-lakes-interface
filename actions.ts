@@ -2,6 +2,7 @@
 
 import clientPromise from "@/lib/mongodb";
 import axios from "axios";
+import getEnvVaribale from "@/lib/get-env-variable";
 
 export async function FetchLakeDataAsync(lakeId: string, year: string) {
   try {
@@ -33,7 +34,8 @@ export async function FetchLakeDataAsync(lakeId: string, year: string) {
 
 export async function fetchExportTasksAsync() {
   try {
-    const response = await axios.get("http://localhost:4000/exports");
+    const response = await axios.get(`${getEnvVaribale("API_URI")}/exports`);
+    console.log(response.data);
     return response.data;
   } catch (e) {
     console.log(e);
@@ -43,7 +45,9 @@ export async function fetchExportTasksAsync() {
 
 export async function deleteExportTaskAsync(id: string) {
   try {
-    const response = await axios.delete(`http://localhost:4000/exports/${id}`);
+    const response = await axios.delete(
+      `${getEnvVaribale("API_URI")}/exports/${id}`,
+    );
   } catch (e) {
     console.log(e);
   }

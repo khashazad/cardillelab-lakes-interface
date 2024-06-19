@@ -21,6 +21,7 @@ import axios from "axios";
 import { Separator } from "@/components/ui/separator";
 import MultiOptionExportSetting from "./multi-option-export-setting";
 import { useRouter } from "next/navigation";
+import getEnvVaribale from "@/lib/get-env-variable";
 
 export default function ExportPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function ExportPage() {
   async function onSubmit(data: TExportSchema) {
     const { buffers, fishnets, years, cloudCoverThreshold, ...config } = data;
     try {
-      await axios.post("http://localhost:4000/exports", {
+      await axios.post(`${getEnvVaribale("API_URI")}/exports`, {
         fishnets: fishnets.map((f) => Number(f)),
         years: years.map((y) => Number(y)),
         buffers: buffers.map((b) => Number(b)),

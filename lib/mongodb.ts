@@ -1,7 +1,6 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
-import getEnvVaribale from "@/lib/get-env-variable";
 
-const uri = getEnvVaribale("MONGODB_URI");
+const uri = process.env.MONGODB_URI || "";
 const options = {
   serverApi: {
     version: ServerApiVersion.v1,

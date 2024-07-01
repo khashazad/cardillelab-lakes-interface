@@ -7,7 +7,7 @@ import getEnvVaribale from "@/lib/get-env-variable";
 export async function FetchLakeDataAsync(lakeId: string, year: string) {
   try {
     const client = await clientPromise;
-    const db = client.db("Lakes");
+    const db = client.db(getEnvVaribale("lakes"));
     const lake = await db
       .collection("lookup")
       .findOne({ hylak_id: Number(lakeId) });

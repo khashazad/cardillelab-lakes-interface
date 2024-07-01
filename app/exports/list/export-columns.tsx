@@ -109,7 +109,7 @@ export const columns: ColumnDef<ExportTask>[] = [
       return (
         row.original.status == "Completed" && (
           <a
-            href={`http://localhost:4000/download/${row.original._id}`}
+            href={`${process.env.API_URI}/download/${row.original._id}`}
             target="_blank"
             rel="noopener noreferrer"
           >
